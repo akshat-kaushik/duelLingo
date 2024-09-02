@@ -1,26 +1,24 @@
 import express from 'express'
 import { WebSocketServer } from 'ws'
 import http from 'http'
+import{userManager} from './managers/userManager'
 
 const app = express()
 const server = http.createServer(app)
 
 const wss = new WebSocketServer({ server })
 
+interface User {
+  socket: WebSocket;
+  name: string;
+}
+
 wss.on('connection', function connection(ws) {
     console.log('New client connected')
-
-    
-
-    ws.on('message', (message) => {
-        console.log('Received message:', message.toString())
-        wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message.toString())
-            }
-        })
+    ws.on('message', (data) => {
+        console.log('Received message:', data.toString())
+        userManager.addUsertoQueue({socket:ws,name:data.name},data.language)
     })
-    
 
     ws.on('close', () => {
         console.log('Client disconnected')
